@@ -1,3 +1,41 @@
+<?php
+    
+    try{
+        $db = new PDO('mysql:host=localhost;dbname=publisher','root','');
+        $db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_WARNING);
+        //echo "Database Connected Successfuly";
+    }
+    catch(PDOException $e){
+        echo $e->getMessage();
+    }
+    
+$page = isset($_GET['page']) ? (int)$_GET['page'] :1;
+
+$nm = isset($_POST['network']) ? $_POST['network'] : '';
+$perpage =24;
+    $start = ($page>1) ? ($page*$perpage)-$perpage : 0;
+if($nm !='')
+{
+$filter="where NetworkName = '$nm'";
+$q="SELECT SQL_CALC_FOUND_ROWS SNO,  NetworkName, Img,bigImg FROM networks $filter";
+}
+else
+{
+$filter= '';
+$q="SELECT SQL_CALC_FOUND_ROWS SNO,  NetworkName, Img,bigImg FROM networks $filter LIMIT {$start},24 ";
+}
+
+    
+    $select = $db->prepare($q);
+    $select->execute();
+    $select= $select->fetchALL(PDO::FETCH_ASSOC);
+    //echo "<pre>",print_r($select),"</pre>";
+    //------page--------
+    $total = $db->query("SELECT FOUND_ROWS() as total")->fetch()['total'];//total num of rows
+ 
+    $pages = ceil($total / $perpage); // ceil() is used to rounding off values
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +57,7 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" type="text/css" href="css/colors.css">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/base/minified/jquery-ui.min.css" type="text/css" />
 
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -66,7 +105,7 @@
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3 searchcustom">
                         <div class="field" id="searchform">
-                            <input type="text" id="searchterm" class="form-control" placeholder="Enter your requirment.." />
+                            <input type="text" name='network' value='' id="searchterm" class="form-control auto" placeholder="Enter your requirment.." />
                             <button type="button" class="btn btn-primary" id="search"><i class="glyphicon glyphicon-search"></i></button>
                         </div>
                     </div><!-- end col -->
@@ -1102,6 +1141,18 @@ Aenean commodo ligula eget dolor. Aenean massa.</p>
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.js"></script>
     <script src="js/plugins.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.10.1/jquery-ui.min.js"></script>    
+    <script type="text/javascript">
+    $(function() {
+        
+        //autocomplete
+        $(".auto").autocomplete({
+            source: "search.php",
+            minLength: 1
+        });                
+
+    });
+    </script>
 
 </body>
 
